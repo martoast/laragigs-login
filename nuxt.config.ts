@@ -6,6 +6,7 @@ export default defineNuxtConfig({
         public: {
             apiUrl: process.env.AUTH_API_URL,
             appUrl: process.env.APP_URL,
+            registerUrl: process.env.REGISTER_URL,
             cookieDomain: process.env.COOKIE_DOMAIN,
         }
     },
