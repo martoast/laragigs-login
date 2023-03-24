@@ -1,7 +1,7 @@
 <template>
    <div class="container">
      <div class="row" style="height:100vh; justify-content: center; align-items: center;">
-       <div class="col col-lg-6">
+       <div class="col col-lg-5">
          <div id="liveAlertPlaceholder"></div>
          <form @submit.prevent="onSubmit">
            <div class="card">
