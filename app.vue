@@ -1,78 +1,76 @@
 <template>
   <div class="container">
-    <div class="row" style="height:100vh; justify-content: center; align-items: center;">
-      <div class="col-md-5">
-        <form @submit.prevent="onSubmit">
-          <div class="mb-3">
-            <label for="exampleInputEmail1" class="form-label">Email address</label>
-            <input v-model="form.email" type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
-            <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
-          </div>
-          <div class="mb-3">
-            <label for="exampleInputPassword1" class="form-label">Password</label>
-            <input v-model="form.password" type="password" class="form-control" id="exampleInputPassword1">
-          </div>
-          <div class="mb-3 form-check">
-            <input type="checkbox" class="form-check-input" id="exampleCheck1">
-            <label class="form-check-label" for="exampleCheck1">Check me out</label>
-          </div>
-          <button type="submit" class="btn btn-primary">Submit</button>
-        </form>
-
-      </div>
-      <div class="col-md-7">
-        <img src="/images/laragigs.jpeg" class="img-fluid">
-
-
-      </div>
-
-    </div>
+     <div class="row" style="height:100vh; justify-content: center; align-items: center;">
+        <div class="col">
+           <div id="liveAlertPlaceholder"></div>
+           <form @submit.prevent="onSubmit">
+              <h1 class="h3 mb-3 fw-normal">
+                 Iniciar Sesión
+              </h1>
+              <div class="mb-3">
+                 <label class="form-label" for="email">Correo Electrónico</label>
+                 <input v-model="data.form.email"
+                    type="email" 
+                    class="form-control" 
+                    id="email" 
+                    placeholder="name@example.com">
+              </div>
+              <div class="mb-3">
+                 <label class="form-label" for="password">Contraseña</label>
+                 <input v-model="data.form.password" 
+                    type="password" 
+                    class="form-control" 
+                    id="password" 
+                    placeholder="Password">
+              </div>
+              <button type="submit" class="btn btn-primary" :disabled="data.loading">Submit</button>
+           </form>
+        </div>
+     </div>
   </div>
 </template>
 
 <script setup>
-const route = useRoute()
-const config = useRuntimeConfig();
-
-const redirect_url = null
-
-if (route.params.redirect) {
-  redirect_url = route.params.redirect
-}
-
-const form = ref({
-  email: null,
-  password: null
-})
-
+const data = reactive({
+    loading: false,
+    errors: {},
+    form: {
+        email: null,
+        password: null
+    }
+});
 
 const onSubmit = async () => {
-  try {
-    const { data } = await useFetch(() => config.public.apiUrl + "/auth/login", {
-    method: "post",
-    body: form
-  })
-    const access_token = useCookie('auth.access_token')
-    access_token.value = data.value.access_token
+    data.loading = true
 
-    if (redirect_url) {
-      await navigateTo(redirect_url, {
-        external: true
-      })
+    const alertPlaceholder = document.getElementById('liveAlertPlaceholder')
+
+    const alert = (message, type) => {
+      const wrapper = document.createElement('div')
+      wrapper.innerHTML = [
+        `<div class="alert alert-${type} alert-dismissible" role="alert">`,
+        `   <div>${message}</div>`,
+        '   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>',
+        '</div>'
+      ].join('')
+
+      alertPlaceholder.append(wrapper)
     }
-    else {
-      await navigateTo(config.public.appUrl, {
-        external: true
-      })
+
+    try {
+        const response = await $fetch('/auth/login', {
+            method: 'post',
+            body: data.form
+        })
+    
+        const { $loginUser, $retriveUser } = useNuxtApp()
+        await $loginUser(response);
+    } catch (error) {
+        data.errors = error.response._data
+        alert(data.errors.message, 'danger')
+        data.loading = false
     }
-  }
-   catch (e) {
-    console.error(e)
-   }
 }
-
-
-
 </script>
 
 
